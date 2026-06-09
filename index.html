@@ -22,10 +22,12 @@
         </div>
 
         <nav class="nav-tabs" aria-label="Planner sections">
+          <p class="nav-label">Primary</p>
           <button class="nav-tab active" data-view="today">Today</button>
           <button class="nav-tab" data-view="tasks">Tasks</button>
           <button class="nav-tab" data-view="goals">Goals</button>
           <button class="nav-tab" data-view="review">Review</button>
+          <p class="nav-label">Secondary</p>
           <button class="nav-tab" data-view="capture">Capture</button>
           <button class="nav-tab" data-view="habits">Habits</button>
           <button class="nav-tab" data-view="month">Month</button>
@@ -58,32 +60,71 @@
             <button type="submit">Them</button>
           </form>
 
-          <div class="dashboard-grid">
-            <section class="panel">
+          <section class="panel today-progress">
+            <div>
               <div class="section-title">
-                <h3>3 viec quan trong</h3>
+                <h3>Progress hom nay</h3>
+                <span id="today-progress-label">0/0 completed</span>
+              </div>
+              <div class="progress big-progress"><span id="today-progress-bar"></span></div>
+            </div>
+            <div class="mini-stats">
+              <div><strong id="today-focus-stat">0</strong><span>Focus</span></div>
+              <div><strong id="today-important-stat">0</strong><span>Important</span></div>
+              <div><strong id="today-overdue-stat">0</strong><span>Overdue</span></div>
+            </div>
+          </section>
+
+          <div class="today-layout">
+            <section class="panel focus-panel">
+              <div class="section-title">
+                <h3>Focus Now</h3>
                 <span id="focus-count">0/3</span>
               </div>
-              <div class="list" id="focus-list"></div>
+              <div class="list" id="focus-now-list"></div>
+            </section>
+
+            <section class="panel pomodoro-panel">
+              <div class="section-title">
+                <h3>Pomodoro</h3>
+                <span id="pomodoro-state">Ready</span>
+              </div>
+              <div class="timer" id="pomodoro-time">25:00</div>
+              <label class="field">
+                Gan voi task
+                <select id="pomodoro-task"></select>
+              </label>
+              <div class="form-actions">
+                <button type="button" id="pomodoro-start">Start</button>
+                <button type="button" class="secondary" id="pomodoro-reset">Reset</button>
+              </div>
             </section>
 
             <section class="panel">
               <div class="section-title">
-                <h3>Den han hom nay</h3>
-                <span id="due-count">0</span>
+                <h3>Important</h3>
+                <span id="important-count">0</span>
               </div>
-              <div class="list" id="due-today-list"></div>
+              <div class="list compact-list" id="important-list"></div>
             </section>
 
             <section class="panel">
+              <div class="section-title">
+                <h3>Optional</h3>
+                <span id="optional-count">0</span>
+              </div>
+              <div class="list compact-list" id="optional-list"></div>
+            </section>
+
+            <section class="panel compact-panel">
               <div class="section-title">
                 <h3>Qua han</h3>
                 <span id="overdue-count">0</span>
               </div>
-              <div class="list" id="overdue-list"></div>
+              <div class="list compact-list" id="overdue-list"></div>
             </section>
 
-            <section class="panel">
+            <section class="panel compact-panel">
               <div class="section-title">
                 <h3>Time blocks</h3>
                 <span>goi y</span>
@@ -93,6 +134,14 @@
                 <div><strong>Chieu</strong><span>Xu ly viec planned va follow-up</span></div>
                 <div><strong>Toi</strong><span>Review nhe, chuan bi ngay mai</span></div>
               </div>
+            </section>
+
+            <section class="panel compact-panel">
+              <div class="section-title">
+                <h3>Planning Suggestion</h3>
+                <span id="suggestion-energy">Energy</span>
+              </div>
+              <div class="list compact-list" id="planning-suggestion"></div>
             </section>
           </div>
         </section>
@@ -240,6 +289,13 @@
           </div>
 
           <div class="dashboard-grid">
+            <section class="panel">
+              <div class="section-title">
+                <h3>Review score</h3>
+                <span id="review-focus-score">0%</span>
+              </div>
+              <div class="stats-grid review-stats" id="review-stats"></div>
+            </section>
             <section class="panel">
               <div class="section-title">
                 <h3>Da hoan thanh tuan nay</h3>
@@ -482,6 +538,20 @@
           </form>
         </section>
       </main>
+    </div>
+
+    <div class="modal-backdrop" id="quick-capture-modal" hidden>
+      <form class="quick-capture-modal" id="global-capture-form">
+        <div class="section-title">
+          <h3>Quick Capture</h3>
+          <span>Ctrl + Space</span>
+        </div>
+        <textarea id="global-capture-content" rows="4" placeholder="Nhap nhanh task, y tuong, ghi chu..."></textarea>
+        <div class="form-actions">
+          <button type="submit">Capture</button>
+          <button type="button" class="secondary" id="global-capture-close">Dong</button>
+        </div>
+      </form>
     </div>
 
     <script src="app.js"></script>

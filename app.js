@@ -62,6 +62,9 @@ const seedState = {
 };
 
 let state = loadState();
+let pomodoroInterval = null;
+let pomodoroSeconds = 25 * 60;
+let pomodoroRunning = false;
 
 const els = {};
 
@@ -119,6 +122,12 @@ function bindEvents() {
   els["month-reset"].addEventListener("click", resetMonthForm);
   els["os-form"].addEventListener("submit", handleOSSubmit);
   els["share-app"].addEventListener("click", shareApp);
+  els["pomodoro-start"].addEventListener("click", togglePomodoro);
+  els["pomodoro-reset"].addEventListener("click", resetPomodoro);
+  els["global-capture-form"].addEventListener("submit", handleGlobalCaptureSubmit);
+  els["global-capture-close"].addEventListener("click", closeQuickCapture);
+
+  document.addEventListener("keydown", handleKeyboardShortcuts);
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     navigator.serviceWorker.register("service-worker.js");
@@ -173,6 +182,7 @@ function render() {
   renderMonthPlans();
   renderInsights();
   renderPersonalOS();
+  renderPomodoro();
 }
 
 function renderNavigation() {
@@ -199,14 +209,30 @@ function renderToday() {
   const focusTasks = openTasks.filter((task) => task.isTodayFocus).slice(0, 3);
   const dueToday = openTasks.filter((task) => task.dueDate === todayISO());
   const overdue = openTasks.filter((task) => task.dueDate && task.dueDate < todayISO());
+  const completedToday = state.tasks.filter((task) => task.completedAt && task.completedAt.slice(0, 10) === todayISO());
+  const todayTotal = uniqueById([...dueToday, ...focusTasks, ...completedToday]).length;
+  const todayDone = completedToday.length;
+  const progress = todayTotal ? Math.round((todayDone / todayTotal) * 100) : 0;
+  const important = dueToday.filter((task) => task.priority === "high" && !task.isTodayFocus);
+  const optional = dueToday.filter((task) => task.priority !== "high" && !task.isTodayFocus);
 
   els["focus-count"].textContent = `${focusTasks.length}/3`;
-  els["due-count"].textContent = dueToday.length;
+  els["important-count"].textContent = important.length;
+  els["optional-count"].textContent = optional.length;
   els["overdue-count"].textContent = overdue.length;
+  els["today-progress-label"].textContent = `${todayDone}/${todayTotal} completed · ${progress}%`;
+  els["today-progress-bar"].style.width = `${progress}%`;
+  els["today-focus-stat"].textContent = focusTasks.length;
+  els["today-important-stat"].textContent = important.length;
+  els["today-overdue-stat"].textContent = overdue.length;
+  els["suggestion-energy"].textContent = `Energy: ${els["energy-select"].value}`;
 
-  renderTaskList(els["focus-list"], focusTasks, "Chua co focus task. Hay bam Focus tren task quan trong.");
-  renderTaskList(els["due-today-list"], dueToday, "Hom nay chua co task den han.");
+  renderTaskList(els["focus-now-list"], focusTasks, "Chua co focus task. Bam Focus tren task quan trong.", { focus: true });
+  renderTaskList(els["important-list"], important, "Khong co task high priority hom nay.");
+  renderTaskList(els["optional-list"], optional, "Khong co optional task hom nay.");
   renderTaskList(els["overdue-list"], overdue, "Khong co task qua han.");
+  renderPlanningSuggestion(openTasks);
+  renderPomodoroOptions(openTasks);
 }
 
 function renderTasks() {
@@ -274,9 +300,27 @@ function renderReview() {
   const weekStart = getWeekStart();
   const completed = state.tasks.filter((task) => task.completedAt && task.completedAt >= weekStart);
   const overdue = state.tasks.filter((task) => task.status !== "done" && task.status !== "archived" && task.dueDate && task.dueDate < todayISO());
+  const plannedThisWeek = state.tasks.filter((task) => task.dueDate && task.dueDate >= weekStart && task.dueDate <= todayISO());
+  const focusCompleted = completed.filter((task) => task.isTodayFocus || task.priority === "high").length;
+  const focusScore = completed.length ? Math.round((focusCompleted / completed.length) * 100) : 0;
+  const deepWorkMinutes = completed
+    .filter((task) => task.context === "deep-work")
+    .reduce((sum, task) => sum + (task.estimatedMinutes || 0), 0);
 
   els["completed-week-count"].textContent = completed.length;
   els["review-overdue-count"].textContent = overdue.length;
+  els["review-focus-score"].textContent = `${focusScore}%`;
+  els["review-stats"].innerHTML = [
+    ["Completed", completed.length],
+    ["Focus Score", `${focusScore}%`],
+    ["Deep Work", `${Math.round(deepWorkMinutes / 60)}h`],
+    ["Planned", plannedThisWeek.length]
+  ].map(([label, value]) => `
+    <article class="stat-card">
+      <strong>${escapeHTML(value)}</strong>
+      <span>${escapeHTML(label)}</span>
+    </article>
+  `).join("");
 
   renderTaskList(els["completed-week-list"], completed, "Tuan nay chua co task nao hoan thanh.");
   renderTaskList(els["review-overdue-list"], overdue, "Khong co task tre can xu ly.");
@@ -309,7 +353,7 @@ function renderGoalOptions() {
   els["task-goal"].innerHTML = options.join("");
 }
 
-function renderTaskList(container, tasks, emptyMessage) {
+function renderTaskList(container, tasks, emptyMessage, options = {}) {
   if (!tasks.length) {
     container.innerHTML = emptyHTML(emptyMessage);
     return;
@@ -321,13 +365,13 @@ function renderTaskList(container, tasks, emptyMessage) {
     const isOverdue = task.dueDate && task.dueDate < todayISO() && !isDone;
 
     return `
-      <article class="task-item">
+      <article class="task-item priority-${task.priority} ${options.focus ? "focus-task" : ""}">
         <div class="task-top">
           <div class="task-title-row">
             <input type="checkbox" data-action="toggle-done" data-id="${task.id}" ${isDone ? "checked" : ""} />
             <div>
-              <p class="task-name ${isDone ? "done" : ""}">${escapeHTML(task.title)}</p>
-              ${task.description ? `<p class="task-description">${escapeHTML(task.description)}</p>` : ""}
+              <p class="task-name ${isDone ? "done" : ""}">${options.focus ? "Focus: " : ""}${escapeHTML(task.title)}</p>
+              ${task.description && options.focus ? `<p class="task-description">${escapeHTML(task.description)}</p>` : ""}
             </div>
           </div>
           <div class="task-actions">
@@ -351,6 +395,120 @@ function renderTaskList(container, tasks, emptyMessage) {
   container.querySelectorAll("button, input[type='checkbox']").forEach((control) => {
     control.addEventListener("click", handleTaskAction);
   });
+}
+
+function renderPlanningSuggestion(tasks) {
+  const energy = state.energyByDate[todayISO()] || "medium";
+  const high = tasks.filter((task) => task.priority === "high").slice(0, energy === "low" ? 1 : 2);
+  const medium = tasks.filter((task) => task.priority === "medium").slice(0, energy === "high" ? 2 : 1);
+  const small = tasks.filter((task) => (task.estimatedMinutes || 999) <= 25).slice(0, 2);
+  const picks = uniqueById(energy === "low" ? [...small, ...high] : [...high, ...medium]).slice(0, 4);
+
+  if (!picks.length) {
+    els["planning-suggestion"].innerHTML = emptyHTML("Chua co task de goi y. Them task hoac gan deadline hom nay.");
+    return;
+  }
+
+  els["planning-suggestion"].innerHTML = picks.map((task, index) => `
+    <article class="task-item priority-${task.priority}">
+      <div class="task-top">
+        <div>
+          <p class="task-name">${index < 2 ? "Morning" : "Afternoon"}: ${escapeHTML(task.title)}</p>
+          <div class="meta-row">
+            <span class="pill ${task.priority}">${task.priority}</span>
+            ${task.estimatedMinutes ? `<span class="pill">${task.estimatedMinutes} phut</span>` : ""}
+          </div>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+function renderPomodoroOptions(tasks) {
+  const current = els["pomodoro-task"].value;
+  els["pomodoro-task"].innerHTML = [`<option value="">Khong gan task</option>`]
+    .concat(tasks.map((task) => `<option value="${task.id}">${escapeHTML(task.title)}</option>`))
+    .join("");
+  els["pomodoro-task"].value = tasks.some((task) => task.id === current) ? current : "";
+}
+
+function renderPomodoro() {
+  const minutes = Math.floor(pomodoroSeconds / 60).toString().padStart(2, "0");
+  const seconds = (pomodoroSeconds % 60).toString().padStart(2, "0");
+  els["pomodoro-time"].textContent = `${minutes}:${seconds}`;
+  els["pomodoro-state"].textContent = pomodoroRunning ? "Focusing" : "Ready";
+  els["pomodoro-start"].textContent = pomodoroRunning ? "Pause" : "Start";
+}
+
+function togglePomodoro() {
+  if (pomodoroRunning) {
+    clearInterval(pomodoroInterval);
+    pomodoroRunning = false;
+    renderPomodoro();
+    return;
+  }
+
+  pomodoroRunning = true;
+  pomodoroInterval = setInterval(() => {
+    pomodoroSeconds -= 1;
+    if (pomodoroSeconds <= 0) {
+      clearInterval(pomodoroInterval);
+      pomodoroRunning = false;
+      pomodoroSeconds = 25 * 60;
+      alert("Pomodoro xong. Nghi 5 phut nhe.");
+    }
+    renderPomodoro();
+  }, 1000);
+  renderPomodoro();
+}
+
+function resetPomodoro() {
+  clearInterval(pomodoroInterval);
+  pomodoroRunning = false;
+  pomodoroSeconds = 25 * 60;
+  renderPomodoro();
+}
+
+function handleKeyboardShortcuts(event) {
+  if (event.ctrlKey && event.code === "Space") {
+    event.preventDefault();
+    openQuickCapture();
+  }
+
+  if (event.key === "Escape" && !els["quick-capture-modal"].hidden) {
+    closeQuickCapture();
+  }
+}
+
+function openQuickCapture() {
+  els["quick-capture-modal"].hidden = false;
+  els["global-capture-content"].focus();
+}
+
+function closeQuickCapture() {
+  els["quick-capture-modal"].hidden = true;
+  els["global-capture-form"].reset();
+}
+
+function handleGlobalCaptureSubmit(event) {
+  event.preventDefault();
+  const content = els["global-capture-content"].value.trim();
+  if (!content) return;
+
+  state.notes.unshift({
+    id: makeId(),
+    content,
+    type: "note",
+    tags: ["quick"],
+    linkedTaskId: "",
+    linkedGoalId: "",
+    createdAt: nowISO(),
+    updatedAt: nowISO()
+  });
+
+  closeQuickCapture();
+  saveState();
+  render();
 }
 
 function emptyHTML(message) {
@@ -966,6 +1124,15 @@ function splitLinesOrComma(value) {
     .split(/[\n,]/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function uniqueById(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (!item || seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
 }
 
 function formatDate(value) {
