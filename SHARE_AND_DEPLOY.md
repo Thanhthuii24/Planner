@@ -2,7 +2,7 @@
 
 App nay duoc thiet ke theo huong free-first:
 
-- Khong can backend trong Phase 1.
+- Khong can backend trong Phase 1-3 local-first.
 - Khong can database tra phi.
 - Khong can account.
 - Chay bang HTML, CSS, JavaScript thuan.
@@ -22,6 +22,7 @@ Khi deploy len HTTPS, app co them PWA basics:
 - Service worker cache app shell.
 - Co the "Add to Home Screen" tren mobile.
 - Nut "Chia se app" de gui link nhanh.
+- Capture inbox, notes, habits, monthly plan, insights va Personal OS.
 
 ## Cach Chay Local
 
@@ -37,7 +38,7 @@ Neu muon test PWA/service worker, can chay qua local server:
 npx serve .
 ```
 
-Lenh nay co the can internet neu may chua co `serve`, nen khong bat buoc cho Phase 1.
+Lenh nay co the can internet neu may chua co `serve`, nen khong bat buoc.
 
 ## Cach Deploy Mien Phi
 
@@ -61,7 +62,7 @@ Vi day la static app, ban chi can upload/deploy cac file:
 
 Moi nguoi se co planner rieng cua ho.
 
-Vi Phase 1 dang dung `localStorage`:
+Vi ban local-first dang dung `localStorage`:
 
 - Ban be/nguoi than khong thay data cua ban.
 - Moi thiet bi co data rieng.

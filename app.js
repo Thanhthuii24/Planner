@@ -551,6 +551,376 @@ function handleReviewSubmit(event) {
   render();
 }
 
+function handleCaptureSubmit(event) {
+  event.preventDefault();
+  const content = els["capture-content"].value.trim();
+  if (!content) return;
+
+  state.notes.unshift({
+    id: makeId(),
+    content,
+    type: els["capture-type"].value,
+    tags: splitLinesOrComma(els["capture-tags"].value),
+    linkedTaskId: "",
+    linkedGoalId: "",
+    createdAt: nowISO(),
+    updatedAt: nowISO()
+  });
+
+  els["capture-form"].reset();
+  saveState();
+  render();
+}
+
+function renderNotes() {
+  const search = els["note-search"].value.trim().toLowerCase();
+  const filter = els["note-filter"].value;
+  const notes = state.notes
+    .filter((note) => filter === "all" || note.type === filter)
+    .filter((note) => {
+      if (!search) return true;
+      return `${note.content} ${note.tags.join(" ")}`.toLowerCase().includes(search);
+    });
+
+  if (!notes.length) {
+    els["note-list"].innerHTML = emptyHTML("Capture inbox dang trong. Ghi nhanh bat ky dieu gi ban can giu.");
+    return;
+  }
+
+  els["note-list"].innerHTML = notes.map((note) => `
+    <article class="note-item">
+      <div class="task-top">
+        <div>
+          <p class="task-name">${escapeHTML(note.content)}</p>
+          <div class="meta-row">
+            <span class="pill">${note.type}</span>
+            <span class="pill">${formatDate(note.createdAt.slice(0, 10))}</span>
+            ${note.tags.map((tag) => `<span class="pill">${escapeHTML(tag)}</span>`).join("")}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="ghost" data-action="note-to-task" data-id="${note.id}">Thanh task</button>
+          <button class="ghost" data-action="note-to-goal" data-id="${note.id}">Thanh goal</button>
+          <button class="ghost" data-action="delete-note" data-id="${note.id}">Xoa</button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  els["note-list"].querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", handleNoteAction);
+  });
+}
+
+function handleNoteAction(event) {
+  const action = event.currentTarget.dataset.action;
+  const id = event.currentTarget.dataset.id;
+  const note = state.notes.find((item) => item.id === id);
+  if (!note) return;
+
+  if (action === "note-to-task") {
+    createTask({ title: note.content.slice(0, 120), description: note.content, status: "inbox", priority: "medium" }, false);
+    note.linkedTaskId = state.tasks[0].id;
+    note.updatedAt = nowISO();
+  }
+
+  if (action === "note-to-goal") {
+    state.goals.unshift({
+      id: makeId(),
+      title: note.content.slice(0, 80),
+      reason: note.content,
+      category: "personal",
+      deadline: "",
+      status: "active",
+      progressMetric: "",
+      createdAt: nowISO(),
+      updatedAt: nowISO()
+    });
+    note.linkedGoalId = state.goals[0].id;
+    note.updatedAt = nowISO();
+  }
+
+  if (action === "delete-note") {
+    state.notes = state.notes.filter((item) => item.id !== id);
+  }
+
+  saveState();
+  render();
+}
+
+function handleDailyLogSubmit(event) {
+  event.preventDefault();
+  const date = todayISO();
+  const existing = state.dailyLogs.find((log) => log.date === date);
+  const payload = {
+    id: existing ? existing.id : makeId(),
+    date,
+    energy: els["daily-energy"].value,
+    mood: els["daily-mood"].value.trim(),
+    notes: els["daily-notes"].value.trim(),
+    updatedAt: nowISO()
+  };
+
+  state.energyByDate[date] = payload.energy;
+  if (existing) {
+    Object.assign(existing, payload);
+  } else {
+    state.dailyLogs.unshift({ ...payload, createdAt: nowISO() });
+  }
+
+  saveState();
+  render();
+}
+
+function renderDailyLog() {
+  const log = state.dailyLogs.find((item) => item.date === todayISO());
+  els["daily-energy"].value = (log && log.energy) || state.energyByDate[todayISO()] || "medium";
+  els["daily-mood"].value = (log && log.mood) || "";
+  els["daily-notes"].value = (log && log.notes) || "";
+}
+
+function handleHabitSubmit(event) {
+  event.preventDefault();
+  state.habits.unshift({
+    id: makeId(),
+    title: els["habit-title"].value.trim(),
+    frequency: els["habit-frequency"].value,
+    targetCount: Number(els["habit-target"].value) || 1,
+    createdAt: nowISO()
+  });
+
+  els["habit-form"].reset();
+  saveState();
+  render();
+}
+
+function renderHabits() {
+  if (!state.habits.length) {
+    els["habit-list"].innerHTML = emptyHTML("Chua co habit nao. Them mot habit nho de theo doi moi ngay.");
+    return;
+  }
+
+  els["habit-list"].innerHTML = state.habits.map((habit) => {
+    const checked = hasHabitLog(habit.id, todayISO());
+    const streak = getHabitStreak(habit.id);
+    return `
+      <article class="habit-item">
+        <div class="task-top">
+          <div class="task-title-row">
+            <input type="checkbox" data-action="toggle-habit" data-id="${habit.id}" ${checked ? "checked" : ""} />
+            <div>
+              <p class="task-name">${escapeHTML(habit.title)}</p>
+              <p>${habit.frequency} · target ${habit.targetCount} · streak ${streak} ngay</p>
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="ghost" data-action="delete-habit" data-id="${habit.id}">Xoa</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  els["habit-list"].querySelectorAll("button, input[type='checkbox']").forEach((control) => {
+    control.addEventListener("click", handleHabitAction);
+  });
+}
+
+function handleHabitAction(event) {
+  const action = event.currentTarget.dataset.action;
+  const id = event.currentTarget.dataset.id;
+
+  if (action === "toggle-habit") {
+    const exists = state.habitLogs.find((log) => log.habitId === id && log.date === todayISO());
+    if (exists) {
+      state.habitLogs = state.habitLogs.filter((log) => log.id !== exists.id);
+    } else {
+      state.habitLogs.unshift({ id: makeId(), habitId: id, date: todayISO(), value: 1, createdAt: nowISO() });
+    }
+  }
+
+  if (action === "delete-habit") {
+    state.habits = state.habits.filter((habit) => habit.id !== id);
+    state.habitLogs = state.habitLogs.filter((log) => log.habitId !== id);
+  }
+
+  saveState();
+  render();
+}
+
+function handleMonthSubmit(event) {
+  event.preventDefault();
+  const id = els["month-id"].value;
+  const payload = {
+    month: els["month-value"].value,
+    theme: els["month-theme"].value.trim(),
+    mainGoals: splitLines(els["month-goals"].value),
+    focusAreas: splitLines(els["month-focus"].value),
+    notes: els["month-notes"].value.trim(),
+    updatedAt: nowISO()
+  };
+
+  if (id) {
+    state.monthPlans = state.monthPlans.map((plan) => plan.id === id ? { ...plan, ...payload } : plan);
+  } else {
+    state.monthPlans.unshift({ id: makeId(), ...payload, createdAt: nowISO() });
+  }
+
+  saveState();
+  resetMonthForm();
+  render();
+}
+
+function renderMonthPlans() {
+  if (!els["month-value"].value) {
+    els["month-value"].value = todayISO().slice(0, 7);
+  }
+
+  if (!state.monthPlans.length) {
+    els["month-list"].innerHTML = emptyHTML("Chua co ke hoach thang nao. Tao thang dau tien de giu huong di dai hon.");
+    return;
+  }
+
+  els["month-list"].innerHTML = state.monthPlans
+    .slice()
+    .sort((a, b) => b.month.localeCompare(a.month))
+    .map((plan) => `
+      <article class="goal-card">
+        <div class="task-top">
+          <div>
+            <h3>${escapeHTML(plan.month)} · ${escapeHTML(plan.theme || "Chua co chu de")}</h3>
+            <div class="meta-row">
+              ${plan.focusAreas.map((item) => `<span class="pill">${escapeHTML(item)}</span>`).join("")}
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="ghost" data-action="edit-month" data-id="${plan.id}">Sua</button>
+            <button class="ghost" data-action="delete-month" data-id="${plan.id}">Xoa</button>
+          </div>
+        </div>
+        <p><strong>Main goals:</strong> ${plan.mainGoals.map(escapeHTML).join(", ") || "Chua ghi"}</p>
+        <p>${escapeHTML(plan.notes || "")}</p>
+      </article>
+    `).join("");
+
+  els["month-list"].querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", handleMonthAction);
+  });
+}
+
+function handleMonthAction(event) {
+  const action = event.currentTarget.dataset.action;
+  const id = event.currentTarget.dataset.id;
+  const plan = state.monthPlans.find((item) => item.id === id);
+  if (!plan) return;
+
+  if (action === "edit-month") {
+    els["month-id"].value = plan.id;
+    els["month-value"].value = plan.month;
+    els["month-theme"].value = plan.theme || "";
+    els["month-goals"].value = (plan.mainGoals || []).join("\n");
+    els["month-focus"].value = (plan.focusAreas || []).join("\n");
+    els["month-notes"].value = plan.notes || "";
+    els["month-submit"].textContent = "Luu month plan";
+  }
+
+  if (action === "delete-month") {
+    state.monthPlans = state.monthPlans.filter((item) => item.id !== id);
+  }
+
+  saveState();
+  render();
+}
+
+function resetMonthForm() {
+  els["month-form"].reset();
+  els["month-id"].value = "";
+  els["month-value"].value = todayISO().slice(0, 7);
+  els["month-submit"].textContent = "Luu month plan";
+}
+
+function handleOSSubmit(event) {
+  event.preventDefault();
+  state.personalOS = {
+    currentPriorities: splitLines(els["os-priorities"].value),
+    principles: splitLines(els["os-principles"].value),
+    routines: {
+      morning: splitLines(els["os-morning"].value),
+      evening: splitLines(els["os-evening"].value),
+      weekly: splitLines(els["os-weekly"].value)
+    },
+    avoidList: splitLines(els["os-avoid"].value),
+    decisionRules: splitLines(els["os-rules"].value),
+    updatedAt: nowISO()
+  };
+
+  saveState();
+  render();
+}
+
+function renderPersonalOS() {
+  const os = state.personalOS || cloneState(seedState.personalOS);
+  els["os-priorities"].value = (os.currentPriorities || []).join("\n");
+  els["os-principles"].value = (os.principles || []).join("\n");
+  els["os-morning"].value = ((os.routines && os.routines.morning) || []).join("\n");
+  els["os-evening"].value = ((os.routines && os.routines.evening) || []).join("\n");
+  els["os-weekly"].value = ((os.routines && os.routines.weekly) || []).join("\n");
+  els["os-avoid"].value = (os.avoidList || []).join("\n");
+  els["os-rules"].value = (os.decisionRules || []).join("\n");
+}
+
+function renderInsights() {
+  const activeTasks = state.tasks.filter((task) => task.status !== "archived");
+  const doneTasks = state.tasks.filter((task) => task.status === "done");
+  const openTasks = state.tasks.filter((task) => task.status !== "done" && task.status !== "archived");
+  const overdue = openTasks.filter((task) => task.dueDate && task.dueDate < todayISO());
+  const weekStart = getWeekStart();
+  const completedThisWeek = doneTasks.filter((task) => task.completedAt && task.completedAt >= weekStart);
+  const todayHabitDone = state.habitLogs.filter((log) => log.date === todayISO()).length;
+
+  els["stats-grid"].innerHTML = [
+    ["Open tasks", openTasks.length],
+    ["Done this week", completedThisWeek.length],
+    ["Overdue", overdue.length],
+    ["Habits today", `${todayHabitDone}/${state.habits.length}`]
+  ].map(([label, value]) => `
+    <article class="stat-card">
+      <strong>${escapeHTML(value)}</strong>
+      <span>${escapeHTML(label)}</span>
+    </article>
+  `).join("");
+
+  const staleGoals = state.goals.filter((goal) => {
+    if (goal.status !== "active") return false;
+    const linked = activeTasks.filter((task) => task.goalId === goal.id);
+    return !linked.some((task) => task.status !== "done" && task.status !== "archived");
+  });
+
+  els["stale-goal-count"].textContent = staleGoals.length;
+  if (!staleGoals.length) {
+    els["stale-goal-list"].innerHTML = emptyHTML("Goal active deu co next action hoac chua co goal active.");
+  } else {
+    els["stale-goal-list"].innerHTML = staleGoals.map((goal) => `
+      <article class="goal-card">
+        <h3>${escapeHTML(goal.title)}</h3>
+        <p>Goal nay chua co next action dang mo. Nen them task nho tiep theo.</p>
+      </article>
+    `).join("");
+  }
+
+  els["habit-streak-count"].textContent = state.habits.length;
+  if (!state.habits.length) {
+    els["habit-streak-list"].innerHTML = emptyHTML("Chua co habit de tinh streak.");
+  } else {
+    els["habit-streak-list"].innerHTML = state.habits.map((habit) => `
+      <article class="habit-item">
+        <p class="task-name">${escapeHTML(habit.title)}</p>
+        <p>Streak hien tai: ${getHabitStreak(habit.id)} ngay</p>
+      </article>
+    `).join("");
+  }
+}
+
 function sortTasks(a, b) {
   const statusWeight = { doing: 0, planned: 1, inbox: 2, done: 3, archived: 4 };
   const priorityWeight = { high: 0, medium: 1, low: 2 };
@@ -566,6 +936,36 @@ function getWeekStart() {
   const day = date.getDay() || 7;
   date.setDate(date.getDate() - day + 1);
   return date.toISOString().slice(0, 10);
+}
+
+function hasHabitLog(habitId, date) {
+  return state.habitLogs.some((log) => log.habitId === habitId && log.date === date);
+}
+
+function getHabitStreak(habitId) {
+  let streak = 0;
+  const cursor = new Date(`${todayISO()}T00:00:00`);
+
+  while (hasHabitLog(habitId, cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function splitLines(value) {
+  return String(value || "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function splitLinesOrComma(value) {
+  return String(value || "")
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function formatDate(value) {
