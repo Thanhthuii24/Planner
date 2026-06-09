@@ -1,12 +1,12 @@
 {
   "name": "Personal Planner",
   "short_name": "Planner",
-  "description": "Personal Planner local-first mien phi cho web va mobile.",
+  "description": "A free local-first personal planner for web and mobile.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4fbf8",
-  "theme_color": "#2f80ed",
+  "background_color": "#e7e1cf",
+  "theme_color": "#233f1f",
   "icons": [
     {
       "src": "icon.svg",

@@ -29,6 +29,21 @@ Deploy the folder to any free static hosting service:
 
 After deployment, send the public URL to friends or family.
 
+### Open It On The Web With GitHub Pages
+
+1. Push this project to a GitHub repository.
+2. Go to `Settings` -> `Pages`.
+3. Under `Build and deployment`, choose:
+   - Source: `Deploy from a branch`
+   - Branch: `main`
+   - Folder: `/root`
+4. Click `Save`.
+5. Open the GitHub Pages URL, usually:
+
+```text
+https://your-username.github.io/your-repo-name/
+```
+
 ## Important Note
 
 Data is stored in each user's browser with `localStorage`.

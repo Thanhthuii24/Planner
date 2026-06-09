@@ -15,8 +15,8 @@ const seedState = {
   tasks: [
     {
       id: makeId(),
-      title: "Chon 3 viec quan trong cho hom nay",
-      description: "Dung Today screen de giu ngay moi gon va ro.",
+      title: "Choose 3 important tasks for today",
+      description: "Use the Today screen to keep your day clear and focused.",
       status: "planned",
       priority: "high",
       dueDate: todayISO(),
@@ -31,12 +31,12 @@ const seedState = {
   goals: [
     {
       id: makeId(),
-      title: "Xay planner ca nhan dung hang ngay",
-      reason: "Co mot noi de giu uu tien, task va review tuan.",
+      title: "Build a personal planner I can use daily",
+      reason: "Keep priorities, tasks, and weekly reviews in one place.",
       category: "personal",
       deadline: "",
       status: "active",
-      progressMetric: "Dung app 5 ngay lien tiep",
+      progressMetric: "Use the app for 5 days in a row",
       createdAt: nowISO(),
       updatedAt: nowISO()
     }
@@ -196,7 +196,7 @@ function renderNavigation() {
 
 function renderToday() {
   const date = new Date();
-  els["today-label"].textContent = date.toLocaleDateString("vi-VN", {
+  els["today-label"].textContent = date.toLocaleDateString("en-US", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
@@ -227,10 +227,10 @@ function renderToday() {
   els["today-overdue-stat"].textContent = overdue.length;
   els["suggestion-energy"].textContent = `Energy: ${els["energy-select"].value}`;
 
-  renderTaskList(els["focus-now-list"], focusTasks, "Chua co focus task. Bam Focus tren task quan trong.", { focus: true });
-  renderTaskList(els["important-list"], important, "Khong co task high priority hom nay.");
-  renderTaskList(els["optional-list"], optional, "Khong co optional task hom nay.");
-  renderTaskList(els["overdue-list"], overdue, "Khong co task qua han.");
+  renderTaskList(els["focus-now-list"], focusTasks, "No focus task yet. Click Focus on an important task.", { focus: true });
+  renderTaskList(els["important-list"], important, "No high-priority tasks due today.");
+  renderTaskList(els["optional-list"], optional, "No optional tasks due today.");
+  renderTaskList(els["overdue-list"], overdue, "No overdue tasks.");
   renderPlanningSuggestion(openTasks);
   renderPomodoroOptions(openTasks);
 }
@@ -246,12 +246,12 @@ function renderTasks() {
     })
     .sort(sortTasks);
 
-  renderTaskList(els["task-list"], tasks, "Chua co task nao. Them task dau tien o form ben tren.");
+  renderTaskList(els["task-list"], tasks, "No tasks yet. Add your first task using the form above.");
 }
 
 function renderGoals() {
   if (!state.goals.length) {
-    els["goal-list"].innerHTML = emptyHTML("Chua co goal nao. Them goal dau tien de gan task vao muc tieu.");
+    els["goal-list"].innerHTML = emptyHTML("No goals yet. Add your first goal to connect tasks to a bigger direction.");
     return;
   }
 
@@ -273,20 +273,20 @@ function renderGoals() {
             </div>
           </div>
           <div class="task-actions">
-            <button class="ghost" data-action="edit-goal" data-id="${goal.id}">Sua</button>
-            <button class="ghost" data-action="delete-goal" data-id="${goal.id}">Xoa</button>
+            <button class="ghost" data-action="edit-goal" data-id="${goal.id}">Edit</button>
+            <button class="ghost" data-action="delete-goal" data-id="${goal.id}">Delete</button>
           </div>
         </div>
         ${goal.reason ? `<p>${escapeHTML(goal.reason)}</p>` : ""}
         ${goal.progressMetric ? `<p><strong>Metric:</strong> ${escapeHTML(goal.progressMetric)}</p>` : ""}
         <div>
           <div class="section-title">
-            <span>Tien do task</span>
+            <span>Task progress</span>
             <span>${done}/${linked.length}</span>
           </div>
           <div class="progress"><span style="width: ${percent}%"></span></div>
         </div>
-        <p><strong>Next action:</strong> ${nextAction ? escapeHTML(nextAction.title) : "Chua co next action"}</p>
+        <p><strong>Next action:</strong> ${nextAction ? escapeHTML(nextAction.title) : "No next action yet"}</p>
       </article>
     `;
   }).join("");
@@ -322,11 +322,11 @@ function renderReview() {
     </article>
   `).join("");
 
-  renderTaskList(els["completed-week-list"], completed, "Tuan nay chua co task nao hoan thanh.");
-  renderTaskList(els["review-overdue-list"], overdue, "Khong co task tre can xu ly.");
+  renderTaskList(els["completed-week-list"], completed, "No tasks completed this week yet.");
+  renderTaskList(els["review-overdue-list"], overdue, "No overdue tasks need attention.");
 
   if (!state.reviews.length) {
-    els["review-history"].innerHTML = emptyHTML("Chua co review nao. Viet review tuan nay de bat dau lich su.");
+    els["review-history"].innerHTML = emptyHTML("No reviews yet. Write this week's review to start your history.");
     return;
   }
 
@@ -336,19 +336,19 @@ function renderReview() {
     .map((review) => `
       <article class="review-item">
         <div class="section-title">
-          <h3>Tuan bat dau ${formatDate(review.weekStart)}</h3>
+          <h3>Week of ${formatDate(review.weekStart)}</h3>
           <span>${formatDate(review.createdAt.slice(0, 10))}</span>
         </div>
-        <p><strong>Wins:</strong> ${escapeHTML(review.wins || "Chua ghi")}</p>
-        <p><strong>Blockers:</strong> ${escapeHTML(review.blockers || "Chua ghi")}</p>
-        <p><strong>Lessons:</strong> ${escapeHTML(review.lessons || "Chua ghi")}</p>
-        <p><strong>Focus tuan toi:</strong> ${review.nextWeekFocus.map(escapeHTML).join(", ") || "Chua ghi"}</p>
+        <p><strong>Wins:</strong> ${escapeHTML(review.wins || "Not written yet")}</p>
+        <p><strong>Blockers:</strong> ${escapeHTML(review.blockers || "Not written yet")}</p>
+        <p><strong>Lessons:</strong> ${escapeHTML(review.lessons || "Not written yet")}</p>
+        <p><strong>Next week focus:</strong> ${review.nextWeekFocus.map(escapeHTML).join(", ") || "Not written yet"}</p>
       </article>
     `).join("");
 }
 
 function renderGoalOptions() {
-  const options = [`<option value="">Khong gan goal</option>`]
+  const options = [`<option value="">No goal</option>`]
     .concat(state.goals.map((goal) => `<option value="${goal.id}">${escapeHTML(goal.title)}</option>`));
   els["task-goal"].innerHTML = options.join("");
 }
@@ -376,15 +376,15 @@ function renderTaskList(container, tasks, emptyMessage, options = {}) {
           </div>
           <div class="task-actions">
             <button class="ghost" data-action="toggle-focus" data-id="${task.id}">${task.isTodayFocus ? "Unfocus" : "Focus"}</button>
-            <button class="ghost" data-action="edit-task" data-id="${task.id}">Sua</button>
-            <button class="ghost" data-action="delete-task" data-id="${task.id}">Xoa</button>
+            <button class="ghost" data-action="edit-task" data-id="${task.id}">Edit</button>
+            <button class="ghost" data-action="delete-task" data-id="${task.id}">Delete</button>
           </div>
         </div>
         <div class="meta-row">
           <span class="pill ${task.priority}">${task.priority}</span>
           <span class="pill">${task.status}</span>
           ${task.dueDate ? `<span class="pill ${isOverdue ? "overdue" : ""}">${formatDate(task.dueDate)}</span>` : ""}
-          ${task.estimatedMinutes ? `<span class="pill">${task.estimatedMinutes} phut</span>` : ""}
+          ${task.estimatedMinutes ? `<span class="pill">${task.estimatedMinutes} min</span>` : ""}
           ${task.context ? `<span class="pill">${task.context}</span>` : ""}
           ${goal ? `<span class="pill">${escapeHTML(goal.title)}</span>` : ""}
         </div>
@@ -405,7 +405,7 @@ function renderPlanningSuggestion(tasks) {
   const picks = uniqueById(energy === "low" ? [...small, ...high] : [...high, ...medium]).slice(0, 4);
 
   if (!picks.length) {
-    els["planning-suggestion"].innerHTML = emptyHTML("Chua co task de goi y. Them task hoac gan deadline hom nay.");
+    els["planning-suggestion"].innerHTML = emptyHTML("No tasks to suggest yet. Add tasks or assign due dates for today.");
     return;
   }
 
@@ -416,7 +416,7 @@ function renderPlanningSuggestion(tasks) {
           <p class="task-name">${index < 2 ? "Morning" : "Afternoon"}: ${escapeHTML(task.title)}</p>
           <div class="meta-row">
             <span class="pill ${task.priority}">${task.priority}</span>
-            ${task.estimatedMinutes ? `<span class="pill">${task.estimatedMinutes} phut</span>` : ""}
+            ${task.estimatedMinutes ? `<span class="pill">${task.estimatedMinutes} min</span>` : ""}
           </div>
         </div>
       </div>
@@ -426,7 +426,7 @@ function renderPlanningSuggestion(tasks) {
 
 function renderPomodoroOptions(tasks) {
   const current = els["pomodoro-task"].value;
-  els["pomodoro-task"].innerHTML = [`<option value="">Khong gan task</option>`]
+  els["pomodoro-task"].innerHTML = [`<option value="">No linked task</option>`]
     .concat(tasks.map((task) => `<option value="${task.id}">${escapeHTML(task.title)}</option>`))
     .join("");
   els["pomodoro-task"].value = tasks.some((task) => task.id === current) ? current : "";
@@ -455,7 +455,7 @@ function togglePomodoro() {
       clearInterval(pomodoroInterval);
       pomodoroRunning = false;
       pomodoroSeconds = 25 * 60;
-      alert("Pomodoro xong. Nghi 5 phut nhe.");
+      alert("Pomodoro complete. Take a 5-minute break.");
     }
     renderPomodoro();
   }, 1000);
@@ -585,7 +585,7 @@ function handleTaskAction(event) {
   if (action === "toggle-focus") {
     const focusCount = state.tasks.filter((item) => item.isTodayFocus && item.id !== id && item.status !== "done").length;
     if (!task.isTodayFocus && focusCount >= 3) {
-      alert("Hom nay chi nen co toi da 3 focus tasks.");
+      alert("Keep today to a maximum of 3 focus tasks.");
       return;
     }
     task.isTodayFocus = !task.isTodayFocus;
@@ -615,13 +615,13 @@ function fillTaskForm(task) {
   els["task-minutes"].value = task.estimatedMinutes || "";
   els["task-context"].value = task.context || "";
   els["task-goal"].value = task.goalId || "";
-  els["task-submit"].textContent = "Luu task";
+  els["task-submit"].textContent = "Save task";
 }
 
 function resetTaskForm() {
   els["task-form"].reset();
   els["task-id"].value = "";
-  els["task-submit"].textContent = "Them task";
+  els["task-submit"].textContent = "Add task";
 }
 
 function handleGoalSubmit(event) {
@@ -683,13 +683,13 @@ function fillGoalForm(goal) {
   els["goal-deadline"].value = goal.deadline || "";
   els["goal-status"].value = goal.status;
   els["goal-metric"].value = goal.progressMetric || "";
-  els["goal-submit"].textContent = "Luu goal";
+  els["goal-submit"].textContent = "Save goal";
 }
 
 function resetGoalForm() {
   els["goal-form"].reset();
   els["goal-id"].value = "";
-  els["goal-submit"].textContent = "Them goal";
+  els["goal-submit"].textContent = "Add goal";
 }
 
 function handleReviewSubmit(event) {
@@ -741,7 +741,7 @@ function renderNotes() {
     });
 
   if (!notes.length) {
-    els["note-list"].innerHTML = emptyHTML("Capture inbox dang trong. Ghi nhanh bat ky dieu gi ban can giu.");
+    els["note-list"].innerHTML = emptyHTML("Your capture inbox is empty. Capture anything you want to keep.");
     return;
   }
 
@@ -757,9 +757,9 @@ function renderNotes() {
           </div>
         </div>
         <div class="task-actions">
-          <button class="ghost" data-action="note-to-task" data-id="${note.id}">Thanh task</button>
-          <button class="ghost" data-action="note-to-goal" data-id="${note.id}">Thanh goal</button>
-          <button class="ghost" data-action="delete-note" data-id="${note.id}">Xoa</button>
+          <button class="ghost" data-action="note-to-task" data-id="${note.id}">Make task</button>
+          <button class="ghost" data-action="note-to-goal" data-id="${note.id}">Make goal</button>
+          <button class="ghost" data-action="delete-note" data-id="${note.id}">Delete</button>
         </div>
       </div>
     </article>
@@ -854,7 +854,7 @@ function handleHabitSubmit(event) {
 
 function renderHabits() {
   if (!state.habits.length) {
-    els["habit-list"].innerHTML = emptyHTML("Chua co habit nao. Them mot habit nho de theo doi moi ngay.");
+    els["habit-list"].innerHTML = emptyHTML("No habits yet. Add one small habit to track daily.");
     return;
   }
 
@@ -868,11 +868,11 @@ function renderHabits() {
             <input type="checkbox" data-action="toggle-habit" data-id="${habit.id}" ${checked ? "checked" : ""} />
             <div>
               <p class="task-name">${escapeHTML(habit.title)}</p>
-              <p>${habit.frequency} · target ${habit.targetCount} · streak ${streak} ngay</p>
+              <p>${habit.frequency} · target ${habit.targetCount} · streak ${streak} days</p>
             </div>
           </div>
           <div class="task-actions">
-            <button class="ghost" data-action="delete-habit" data-id="${habit.id}">Xoa</button>
+            <button class="ghost" data-action="delete-habit" data-id="${habit.id}">Delete</button>
           </div>
         </div>
       </article>
@@ -935,7 +935,7 @@ function renderMonthPlans() {
   }
 
   if (!state.monthPlans.length) {
-    els["month-list"].innerHTML = emptyHTML("Chua co ke hoach thang nao. Tao thang dau tien de giu huong di dai hon.");
+    els["month-list"].innerHTML = emptyHTML("No monthly plans yet. Create your first month plan to keep a longer direction.");
     return;
   }
 
@@ -946,17 +946,17 @@ function renderMonthPlans() {
       <article class="goal-card">
         <div class="task-top">
           <div>
-            <h3>${escapeHTML(plan.month)} · ${escapeHTML(plan.theme || "Chua co chu de")}</h3>
+            <h3>${escapeHTML(plan.month)} · ${escapeHTML(plan.theme || "No theme yet")}</h3>
             <div class="meta-row">
               ${plan.focusAreas.map((item) => `<span class="pill">${escapeHTML(item)}</span>`).join("")}
             </div>
           </div>
           <div class="task-actions">
-            <button class="ghost" data-action="edit-month" data-id="${plan.id}">Sua</button>
-            <button class="ghost" data-action="delete-month" data-id="${plan.id}">Xoa</button>
+            <button class="ghost" data-action="edit-month" data-id="${plan.id}">Edit</button>
+            <button class="ghost" data-action="delete-month" data-id="${plan.id}">Delete</button>
           </div>
         </div>
-        <p><strong>Main goals:</strong> ${plan.mainGoals.map(escapeHTML).join(", ") || "Chua ghi"}</p>
+        <p><strong>Main goals:</strong> ${plan.mainGoals.map(escapeHTML).join(", ") || "Not written yet"}</p>
         <p>${escapeHTML(plan.notes || "")}</p>
       </article>
     `).join("");
@@ -979,7 +979,7 @@ function handleMonthAction(event) {
     els["month-goals"].value = (plan.mainGoals || []).join("\n");
     els["month-focus"].value = (plan.focusAreas || []).join("\n");
     els["month-notes"].value = plan.notes || "";
-    els["month-submit"].textContent = "Luu month plan";
+    els["month-submit"].textContent = "Save month plan";
   }
 
   if (action === "delete-month") {
@@ -994,7 +994,7 @@ function resetMonthForm() {
   els["month-form"].reset();
   els["month-id"].value = "";
   els["month-value"].value = todayISO().slice(0, 7);
-  els["month-submit"].textContent = "Luu month plan";
+  els["month-submit"].textContent = "Save month plan";
 }
 
 function handleOSSubmit(event) {
@@ -1056,24 +1056,24 @@ function renderInsights() {
 
   els["stale-goal-count"].textContent = staleGoals.length;
   if (!staleGoals.length) {
-    els["stale-goal-list"].innerHTML = emptyHTML("Goal active deu co next action hoac chua co goal active.");
+    els["stale-goal-list"].innerHTML = emptyHTML("All active goals have a next action, or there are no active goals.");
   } else {
     els["stale-goal-list"].innerHTML = staleGoals.map((goal) => `
       <article class="goal-card">
         <h3>${escapeHTML(goal.title)}</h3>
-        <p>Goal nay chua co next action dang mo. Nen them task nho tiep theo.</p>
+        <p>This goal has no open next action. Add one small next task.</p>
       </article>
     `).join("");
   }
 
   els["habit-streak-count"].textContent = state.habits.length;
   if (!state.habits.length) {
-    els["habit-streak-list"].innerHTML = emptyHTML("Chua co habit de tinh streak.");
+    els["habit-streak-list"].innerHTML = emptyHTML("No habits yet, so there are no streaks to calculate.");
   } else {
     els["habit-streak-list"].innerHTML = state.habits.map((habit) => `
       <article class="habit-item">
         <p class="task-name">${escapeHTML(habit.title)}</p>
-        <p>Streak hien tai: ${getHabitStreak(habit.id)} ngay</p>
+        <p>Current streak: ${getHabitStreak(habit.id)} days</p>
       </article>
     `).join("");
   }
@@ -1137,7 +1137,7 @@ function uniqueById(items) {
 
 function formatDate(value) {
   if (!value) return "";
-  return new Date(`${value}T00:00:00`).toLocaleDateString("vi-VN", {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
@@ -1160,7 +1160,7 @@ function cloneState(value) {
 async function shareApp() {
   const shareData = {
     title: "Personal Planner",
-    text: "Planner ca nhan mien phi, dung duoc tren web va mobile.",
+    text: "A free personal planner for web and mobile.",
     url: location.href
   };
 
@@ -1171,7 +1171,7 @@ async function shareApp() {
 
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(location.href);
-    alert("Da copy link app vao clipboard.");
+    alert("App link copied to clipboard.");
     return;
   }
 

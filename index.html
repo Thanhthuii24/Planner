@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#2f80ed" />
-    <meta name="description" content="Personal Planner local-first cho web va mobile." />
+    <meta name="theme-color" content="#233f1f" />
+    <meta name="description" content="A local-first personal planner for web and mobile." />
     <title>Personal Planner</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -16,7 +16,7 @@
         <div class="brand">
           <div class="brand-mark">P</div>
           <div>
-            <p class="eyebrow">Local-first</p>
+            <p class="eyebrow">Deep work</p>
             <h1>Planner</h1>
           </div>
         </div>
@@ -35,7 +35,7 @@
           <button class="nav-tab" data-view="os">My OS</button>
         </nav>
 
-        <button class="share-button" id="share-app" type="button">Chia se app</button>
+        <button class="share-button" id="share-app" type="button">Share app</button>
       </aside>
 
       <main class="main">
@@ -43,27 +43,28 @@
           <div class="page-header">
             <div>
               <p class="eyebrow" id="today-label"></p>
-              <h2>Hom nay minh tap trung vao dau?</h2>
+              <h2>Today</h2>
+              <p class="header-note">Plan less. Finish what matters.</p>
             </div>
             <label class="field compact">
-              Nang luong
+              Energy
               <select id="energy-select">
-                <option value="low">Thap</option>
-                <option value="medium">Vua</option>
-                <option value="high">Cao</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </label>
           </div>
 
           <form class="quick-add" id="quick-task-form">
-            <input id="quick-task-title" type="text" placeholder="Them nhanh task cho hom nay..." autocomplete="off" />
-            <button type="submit">Them</button>
+            <input id="quick-task-title" type="text" placeholder="Quick add a task for today..." autocomplete="off" />
+            <button type="submit">Add</button>
           </form>
 
           <section class="panel today-progress">
             <div>
               <div class="section-title">
-                <h3>Progress hom nay</h3>
+                <h3>Today's progress</h3>
                 <span id="today-progress-label">0/0 completed</span>
               </div>
               <div class="progress big-progress"><span id="today-progress-bar"></span></div>
@@ -91,7 +92,7 @@
               </div>
               <div class="timer" id="pomodoro-time">25:00</div>
               <label class="field">
-                Gan voi task
+                Linked task
                 <select id="pomodoro-task"></select>
               </label>
               <div class="form-actions">
@@ -118,7 +119,7 @@
 
             <section class="panel compact-panel">
               <div class="section-title">
-                <h3>Qua han</h3>
+                <h3>Overdue</h3>
                 <span id="overdue-count">0</span>
               </div>
               <div class="list compact-list" id="overdue-list"></div>
@@ -127,12 +128,12 @@
             <section class="panel compact-panel">
               <div class="section-title">
                 <h3>Time blocks</h3>
-                <span>goi y</span>
+                <span>suggested</span>
               </div>
               <div class="time-blocks">
-                <div><strong>Sang</strong><span>Deep work / task high priority</span></div>
-                <div><strong>Chieu</strong><span>Xu ly viec planned va follow-up</span></div>
-                <div><strong>Toi</strong><span>Review nhe, chuan bi ngay mai</span></div>
+                <div><strong>Morning</strong><span>Deep work / high-priority tasks</span></div>
+                <div><strong>Afternoon</strong><span>Planned tasks and follow-ups</span></div>
+                <div><strong>Evening</strong><span>Light review and prepare tomorrow</span></div>
               </div>
             </section>
 
@@ -150,22 +151,22 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Task system</p>
-              <h2>Quan ly viec can lam</h2>
+              <h2>Manage your tasks</h2>
             </div>
           </div>
 
           <form class="form-grid panel" id="task-form">
             <input type="hidden" id="task-id" />
             <label class="field wide">
-              Ten task
-              <input id="task-title" type="text" placeholder="Vi du: Len ke hoach tuan moi" required />
+              Task title
+              <input id="task-title" type="text" placeholder="Example: Plan next week" required />
             </label>
             <label class="field">
               Deadline
               <input id="task-due" type="date" />
             </label>
             <label class="field">
-              Uu tien
+              Priority
               <select id="task-priority">
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -173,7 +174,7 @@
               </select>
             </label>
             <label class="field">
-              Trang thai
+              Status
               <select id="task-status">
                 <option value="inbox">Inbox</option>
                 <option value="planned">Planned</option>
@@ -187,13 +188,13 @@
               <select id="task-goal"></select>
             </label>
             <label class="field">
-              Phut uoc tinh
+              Estimated minutes
               <input id="task-minutes" type="number" min="0" step="5" placeholder="30" />
             </label>
             <label class="field">
               Context
               <select id="task-context">
-                <option value="">Khong gan</option>
+                <option value="">No context</option>
                 <option value="home">Home</option>
                 <option value="computer">Computer</option>
                 <option value="outside">Outside</option>
@@ -202,19 +203,19 @@
               </select>
             </label>
             <label class="field wide">
-              Mo ta
-              <textarea id="task-description" rows="3" placeholder="Ghi chu them neu can"></textarea>
+              Description
+              <textarea id="task-description" rows="3" placeholder="Optional notes"></textarea>
             </label>
             <div class="form-actions">
-              <button type="submit" id="task-submit">Them task</button>
-              <button type="button" class="secondary" id="task-reset">Lam moi</button>
+              <button type="submit" id="task-submit">Add task</button>
+              <button type="button" class="secondary" id="task-reset">Reset</button>
             </div>
           </form>
 
           <div class="toolbar">
-            <input id="task-search" type="search" placeholder="Tim task..." />
+            <input id="task-search" type="search" placeholder="Search tasks..." />
             <select id="task-filter">
-              <option value="all">Tat ca</option>
+              <option value="all">All</option>
               <option value="inbox">Inbox</option>
               <option value="planned">Planned</option>
               <option value="doing">Doing</option>
@@ -229,15 +230,15 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Goals</p>
-              <h2>Muc tieu lon va next action</h2>
+              <h2>Goals and next actions</h2>
             </div>
           </div>
 
           <form class="form-grid panel" id="goal-form">
             <input type="hidden" id="goal-id" />
             <label class="field wide">
-              Ten goal
-              <input id="goal-title" type="text" placeholder="Vi du: Tang suc khoe trong 3 thang" required />
+              Goal title
+              <input id="goal-title" type="text" placeholder="Example: Improve health in 3 months" required />
             </label>
             <label class="field">
               Category
@@ -264,16 +265,16 @@
               </select>
             </label>
             <label class="field wide">
-              Ly do
-              <textarea id="goal-reason" rows="3" placeholder="Vi sao goal nay quan trong?"></textarea>
+              Reason
+              <textarea id="goal-reason" rows="3" placeholder="Why does this goal matter?"></textarea>
             </label>
             <label class="field wide">
-              Chi so tien do
-              <input id="goal-metric" type="text" placeholder="Vi du: 12 buoi tap / 4 bai viet / 20 gio hoc" />
+              Progress metric
+              <input id="goal-metric" type="text" placeholder="Example: 12 workouts / 4 essays / 20 study hours" />
             </label>
             <div class="form-actions">
-              <button type="submit" id="goal-submit">Them goal</button>
-              <button type="button" class="secondary" id="goal-reset">Lam moi</button>
+              <button type="submit" id="goal-submit">Add goal</button>
+              <button type="button" class="secondary" id="goal-reset">Reset</button>
             </div>
           </form>
 
@@ -284,7 +285,7 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Weekly Review</p>
-              <h2>Nhin lai tuan nay</h2>
+              <h2>Review this week</h2>
             </div>
           </div>
 
@@ -298,14 +299,14 @@
             </section>
             <section class="panel">
               <div class="section-title">
-                <h3>Da hoan thanh tuan nay</h3>
+                <h3>Completed this week</h3>
                 <span id="completed-week-count">0</span>
               </div>
               <div class="list" id="completed-week-list"></div>
             </section>
             <section class="panel">
               <div class="section-title">
-                <h3>Con tre / can xu ly</h3>
+                <h3>Overdue / needs attention</h3>
                 <span id="review-overdue-count">0</span>
               </div>
               <div class="list" id="review-overdue-list"></div>
@@ -314,22 +315,22 @@
 
           <form class="panel review-form" id="review-form">
             <label class="field">
-              Tuan nay minh da lam duoc gi?
+              What did I complete this week?
               <textarea id="review-wins" rows="3"></textarea>
             </label>
             <label class="field">
-              Viec nao bi tri hoan hoac lam minh ket?
+              What was delayed or blocked?
               <textarea id="review-blockers" rows="3"></textarea>
             </label>
             <label class="field">
-              Minh hoc duoc gi?
+              What did I learn?
               <textarea id="review-lessons" rows="3"></textarea>
             </label>
             <label class="field">
-              1-3 uu tien tuan toi
-              <textarea id="review-focus" rows="3" placeholder="Moi dong la mot uu tien"></textarea>
+              1-3 priorities for next week
+              <textarea id="review-focus" rows="3" placeholder="One priority per line"></textarea>
             </label>
-            <button type="submit">Luu review tuan nay</button>
+            <button type="submit">Save weekly review</button>
           </form>
 
           <div class="list large-list" id="review-history"></div>
@@ -339,17 +340,17 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Capture Inbox</p>
-              <h2>Ghi nhanh moi thu truoc khi quen</h2>
+              <h2>Capture ideas before they disappear</h2>
             </div>
           </div>
 
           <form class="form-grid panel" id="capture-form">
             <label class="field wide">
-              Noi dung
-              <textarea id="capture-content" rows="4" placeholder="Y tuong, viec bat chot, ghi chu nhanh..." required></textarea>
+              Content
+              <textarea id="capture-content" rows="4" placeholder="Ideas, sudden tasks, quick notes..." required></textarea>
             </label>
             <label class="field">
-              Loai
+              Type
               <select id="capture-type">
                 <option value="note">Note</option>
                 <option value="task">Task</option>
@@ -361,14 +362,14 @@
               <input id="capture-tags" type="text" placeholder="work, health, idea" />
             </label>
             <div class="form-actions">
-              <button type="submit">Luu vao inbox</button>
+              <button type="submit">Save to inbox</button>
             </div>
           </form>
 
           <div class="toolbar">
-            <input id="note-search" type="search" placeholder="Tim note..." />
+            <input id="note-search" type="search" placeholder="Search notes..." />
             <select id="note-filter">
-              <option value="all">Tat ca</option>
+              <option value="all">All</option>
               <option value="note">Note</option>
               <option value="task">Task</option>
               <option value="idea">Goal idea</option>
@@ -381,38 +382,38 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Habits & Daily Log</p>
-              <h2>Theo doi thoi quen va cam giac moi ngay</h2>
+              <h2>Track habits and your daily state</h2>
             </div>
           </div>
 
           <div class="dashboard-grid">
             <form class="panel review-form" id="daily-log-form">
               <label class="field">
-                Nang luong hom nay
+                Today's energy
                 <select id="daily-energy">
-                  <option value="low">Thap</option>
-                  <option value="medium">Vua</option>
-                  <option value="high">Cao</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
                 </select>
               </label>
               <label class="field">
                 Mood
-                <input id="daily-mood" type="text" placeholder="Binh yen, tap trung, met..." />
+                <input id="daily-mood" type="text" placeholder="Calm, focused, tired..." />
               </label>
               <label class="field">
-                Ghi chu ngay
+                Daily notes
                 <textarea id="daily-notes" rows="3"></textarea>
               </label>
-              <button type="submit">Luu daily log</button>
+              <button type="submit">Save daily log</button>
             </form>
 
             <form class="panel review-form" id="habit-form">
               <label class="field">
-                Ten habit
-                <input id="habit-title" type="text" placeholder="Vi du: Di bo 20 phut" required />
+                Habit title
+                <input id="habit-title" type="text" placeholder="Example: Walk for 20 minutes" required />
               </label>
               <label class="field">
-                Tan suat
+                Frequency
                 <select id="habit-frequency">
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -422,7 +423,7 @@
                 Target
                 <input id="habit-target" type="number" min="1" placeholder="1" />
               </label>
-              <button type="submit">Them habit</button>
+              <button type="submit">Add habit</button>
             </form>
           </div>
 
@@ -433,35 +434,35 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Monthly Plan</p>
-              <h2>Lap ke hoach theo thang</h2>
+              <h2>Plan your month</h2>
             </div>
           </div>
 
           <form class="form-grid panel" id="month-form">
             <input type="hidden" id="month-id" />
             <label class="field">
-              Thang
+              Month
               <input id="month-value" type="month" required />
             </label>
             <label class="field wide">
-              Chu de thang
-              <input id="month-theme" type="text" placeholder="Vi du: On dinh suc khoe va ra mat MVP" />
+              Monthly theme
+              <input id="month-theme" type="text" placeholder="Example: Stabilize health and ship the MVP" />
             </label>
             <label class="field wide">
               Main goals
-              <textarea id="month-goals" rows="3" placeholder="Moi dong la mot goal chinh"></textarea>
+              <textarea id="month-goals" rows="3" placeholder="One main goal per line"></textarea>
             </label>
             <label class="field wide">
               Focus areas
-              <textarea id="month-focus" rows="3" placeholder="Suc khoe, cong viec, hoc tap..."></textarea>
+              <textarea id="month-focus" rows="3" placeholder="Health, work, study..."></textarea>
             </label>
             <label class="field wide">
               Notes
               <textarea id="month-notes" rows="3"></textarea>
             </label>
             <div class="form-actions">
-              <button type="submit" id="month-submit">Luu month plan</button>
-              <button type="button" class="secondary" id="month-reset">Lam moi</button>
+              <button type="submit" id="month-submit">Save month plan</button>
+              <button type="button" class="secondary" id="month-reset">Reset</button>
             </div>
           </form>
 
@@ -472,7 +473,7 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Insights</p>
-              <h2>Nhin pattern thay vi chi nhin task</h2>
+              <h2>See patterns, not just tasks</h2>
             </div>
           </div>
 
@@ -480,7 +481,7 @@
           <div class="dashboard-grid">
             <section class="panel">
               <div class="section-title">
-                <h3>Goals bi bo quen</h3>
+                <h3>Stale goals</h3>
                 <span id="stale-goal-count">0</span>
               </div>
               <div class="list" id="stale-goal-list"></div>
@@ -499,18 +500,18 @@
           <div class="page-header">
             <div>
               <p class="eyebrow">Personal OS</p>
-              <h2>He dieu hanh ca nhan cua ban</h2>
+              <h2>Your personal operating system</h2>
             </div>
           </div>
 
           <form class="form-grid panel" id="os-form">
             <label class="field wide">
               Current priorities
-              <textarea id="os-priorities" rows="3" placeholder="Moi dong la mot uu tien hien tai"></textarea>
+              <textarea id="os-priorities" rows="3" placeholder="One current priority per line"></textarea>
             </label>
             <label class="field wide">
               Principles
-              <textarea id="os-principles" rows="3" placeholder="Nguyen tac song / lam viec"></textarea>
+              <textarea id="os-principles" rows="3" placeholder="Life or work principles"></textarea>
             </label>
             <label class="field wide">
               Morning routine
@@ -533,7 +534,7 @@
               <textarea id="os-rules" rows="3"></textarea>
             </label>
             <div class="form-actions">
-              <button type="submit">Luu Personal OS</button>
+              <button type="submit">Save Personal OS</button>
             </div>
           </form>
         </section>
@@ -546,10 +547,10 @@
           <h3>Quick Capture</h3>
           <span>Ctrl + Space</span>
         </div>
-        <textarea id="global-capture-content" rows="4" placeholder="Nhap nhanh task, y tuong, ghi chu..."></textarea>
+        <textarea id="global-capture-content" rows="4" placeholder="Quickly capture a task, idea, or note..."></textarea>
         <div class="form-actions">
           <button type="submit">Capture</button>
-          <button type="button" class="secondary" id="global-capture-close">Dong</button>
+          <button type="button" class="secondary" id="global-capture-close">Close</button>
         </div>
       </form>
     </div>
